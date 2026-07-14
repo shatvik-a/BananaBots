@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -7,291 +9,324 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-@TeleOp(name = "Emerson_TeleOp", group = "Competition")
+import java.util.List;
+
+@TeleOp(name = "M3_CompTeleop", group = "Competition")
 public class Emerson_TeleOp extends OpMode {
 
-    // Drivetrain motors
-    private DcMotor frontLeftDrive;
-    private DcMotor frontRightDrive;
-    private DcMotor backLeftDrive;
-    private DcMotor backRightDrive;
+    // Mecanum Wheels
+    DcMotor frontLeftDrive;
+    DcMotor frontRightDrive;
+    DcMotor backLeftDrive;
+    DcMotor backRightDrive;
 
-    // Mechanism motors
-    private DcMotorEx launcher;
-    private DcMotor intake1;
-    private DcMotor intake2;
+    // Intake/Launcher
+    DcMotorEx launcher;
+    DcMotor intake1, intake2;
 
-    // Servo
-    private Servo armServo;
+    //double forwardBackward;
+    //double strafeRightLeft;
+    //double rotate = 0;
+    AprilTagProcessor aprilTag;
+    VisionPortal visionPortal;
 
-    // Servo positions
-    private static final double ARM_UP_POSITION = 1.0;
-    private static final double ARM_DOWN_POSITION = 0.0;
+
+    public GoBildaPinpointDriver pinpoint;
+    ElapsedTime launchTimer;
+
+
+
+    boolean toggle = false; //this checks if a has been toggled
+    boolean prevButton;
+    boolean last = false; //checks the value given the last time a was pressed
+
+    static boolean shootBallsRunning = false;
 
     @Override
     public void init() {
+        // Set these ONCE during initialization
 
-        /*
-         * These names must exactly match the names in the
-         * Driver Station robot configuration.
-         */
-        frontLeftDrive =
-                hardwareMap.get(DcMotor.class, "leftFront");
+        // initializing stuff
+        frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "leftBack");
+        backRightDrive = hardwareMap.get(DcMotor.class, "rightBack");
 
-        frontRightDrive =
-                hardwareMap.get(DcMotor.class, "rightFront");
+        // Intakes, Servo,  and Launcher
+        
+        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+        intake1 = hardwareMap.get(DcMotor.class, "intake1");
+        intake2 = hardwareMap.get(DcMotor.class, "intake2");
 
-        backLeftDrive =
-                hardwareMap.get(DcMotor.class, "leftBack");
 
-        backRightDrive =
-                hardwareMap.get(DcMotor.class, "rightBack");
+        launcher.setDirection(DcMotorEx.Direction.REVERSE);
+        launcher.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pid_right_new = new PIDFCoefficients(50, 0.75, 1.0, 12.7);
+        launcher.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pid_right_new);
 
-        launcher =
-                hardwareMap.get(DcMotorEx.class, "launcher");
+        // Create a timer for the launch delay
+        launchTimer = new ElapsedTime();
 
-        intake1 =
-                hardwareMap.get(DcMotor.class, "intake1");
-
-        intake2 =
-                hardwareMap.get(DcMotor.class, "intake2");
-
-        armServo =
-                hardwareMap.get(Servo.class, "armServo");
-
-        /*
-         * Motor directions may need to be changed depending
-         * on how the motors are mounted.
-         */
-        frontLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        // reverse the left motors just because that's how it works
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        frontRightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+        // Pinpoint
 
-        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
+        //Encoder Directions
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED,
+                GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        //double mmPerTick = PARAMS.inPerTick * 25.4;
+               //Encoder Directions
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED,
+                GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
-        /*
-         * Brake mode prevents the drivetrain from freely rolling
-         * when the joysticks are released.
-         */
-        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        intake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        intake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        /*
-         * Configure the launcher to use its encoder.
-         */
-        launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        PIDFCoefficients launcherPIDF =
-                new PIDFCoefficients(
-                        50.0,
-                        0.75,
-                        1.0,
-                        12.7
-                );
-
-        launcher.setPIDFCoefficients(
-                DcMotor.RunMode.RUN_USING_ENCODER,
-                launcherPIDF
-        );
-
-        /*
-         * Starting servo position.
-         */
-        armServo.setPosition(ARM_DOWN_POSITION);
-
-        telemetry.addLine("Robot initialized");
-        telemetry.addLine("Press Play to begin");
-        telemetry.update();
+        pinpoint.resetPosAndIMU();
+    }
+    @Override
+    public void start(){
+        launcher.setVelocity(1380);
     }
 
     @Override
     public void loop() {
 
-        driveRobot();
-        controlLauncher();
-        controlIntake();
-        controlArmServo();
-        showTelemetry();
-    }
+        pinpoint.update();
 
-    private void driveRobot() {
+        boolean currentButton;
 
-        /*
-         * FTC joysticks return negative values when pushed forward,
-         * so gamepad1.left_stick_y is negated.
-         */
-        double forward = -gamepad1.left_stick_y;
-        double strafe = gamepad1.left_stick_x;
-        double rotate = gamepad1.right_stick_x;
 
-        /*
-         * Mecanum wheel calculations.
-         */
-        double frontLeftPower =
-                forward + strafe + rotate;
+        // INTAKE AND LAUNCHER CODE BELOW
+        intake1.setPower(1.0);
+        //intake2.setPower(-1.0);
 
-        double frontRightPower =
-                forward - strafe - rotate;
+        //Servo Bind
 
-        double backLeftPower =
-                forward - strafe + rotate;
-
-        double backRightPower =
-                forward + strafe - rotate;
-
-        /*
-         * Normalize motor powers so none exceed 1.0.
-         */
-        double largestPower = Math.max(
-                Math.abs(frontLeftPower),
-                Math.max(
-                        Math.abs(frontRightPower),
-                        Math.max(
-                                Math.abs(backLeftPower),
-                                Math.abs(backRightPower)
-                        )
-                )
-        );
-
-        if (largestPower > 1.0) {
-            frontLeftPower /= largestPower;
-            frontRightPower /= largestPower;
-            backLeftPower /= largestPower;
-            backRightPower /= largestPower;
+        if (gamepad2.x) {
+            armServo.setPosition(0);
+        }
+        // if left bumper isn't pressed, intake 2 won't run
+        else if (gamepad2.right_trigger < 0.85){
+            armServo.setPosition(1);
+        }
+        if (gamepad1.a){
+            pinpoint.resetPosAndIMU();
         }
 
-        /*
-         * Hold the left trigger for slower, more precise driving.
-         */
-        double speedMultiplier;
-
-        if (gamepad1.left_trigger > 0.25) {
-            speedMultiplier = 0.4;
+        /* if (gamepad1.left_bumper) {
+            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
-            speedMultiplier = 1.0;
+            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
-        frontLeftDrive.setPower(
-                frontLeftPower * speedMultiplier
-        );
-
-        frontRightDrive.setPower(
-                frontRightPower * speedMultiplier
-        );
-
-        backLeftDrive.setPower(
-                backLeftPower * speedMultiplier
-        );
-
-        backRightDrive.setPower(
-                backRightPower * speedMultiplier
-        );
-    }
-
-    private void controlLauncher() {
-
-        /*
-         * The right trigger controls launcher power.
          */
-        double launcherPower =
-                Range.clip(gamepad1.right_trigger, 0.0, 1.0);
 
-        launcher.setPower(launcherPower);
-    }
-
-    private void controlIntake() {
-
-        /*
-         * Right bumper: intake forward
-         * Left bumper: intake reverse
-         */
-        double intakePower;
-
-        if (gamepad1.right_bumper) {
-            intakePower = 1.0;
-        } else if (gamepad1.left_bumper) {
-            intakePower = -1.0;
+        currentButton = gamepad1.b;
+        if (currentButton && !prevButton && timer.seconds() > 0.3) {
+            toggle = !toggle;
+            timer.reset();
+        }
+        prevButton = currentButton;
+        // depending on the value (true or false) it will go to either robot centric or field centric
+        if (toggle) {
+            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        }
+        // If you press the left bumper, you get a drive from the point of view of the robot
+        // (much like driving an RC vehicle)
+        else if (gamepad1.left_bumper) {
+            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
-            intakePower = 0.0;
+            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
-        intake1.setPower(intakePower);
-        intake2.setPower(intakePower);
-    }
 
-    private void controlArmServo() {
+        if (gamepad2.left_bumper) {
+            intake2.setPower(-1.0);
+        }
+        // if right trigger is pressed, it will launch the artifacts
+        // In your main loop (not a blocking while loop)
+        if (gamepad2.right_trigger > 0.85) {
+            // Stop driving
+            frontLeftDrive.setPower(0);
+            frontRightDrive.setPower(0);
+            backRightDrive.setPower(0);
+            backLeftDrive.setPower(0);
 
-        /*
-         * A raises the arm.
-         * B lowers the arm.
-         */
-        if (gamepad1.a) {
-            armServo.setPosition(ARM_UP_POSITION);
+            // Get AprilTag detections
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+            AprilTagDetection desiredTag1 = detectAprilTag(24, currentDetections);
+            AprilTagDetection desiredTag2 = detectAprilTag(20, currentDetections);
+            AprilTagDetection desiredTag = null;
+
+            // Safely check for tags
+            if (desiredTag1 != null && desiredTag1.id == 24) {
+                desiredTag = desiredTag1;
+            } else if (desiredTag2 != null && desiredTag2.id == 20) {
+                desiredTag = desiredTag2;
+            }
+
+            if (desiredTag != null) {
+                double range = desiredTag.ftcPose.range;
+                double launcherVel = 973.7734 * Math.pow(1.00616, range) + 20;
+
+                if (range > 90) {
+                    launcherVel -= 180;
+                }
+
+
+
+                launcher.setVelocity(launcherVel);
+
+                boolean launcherAtSpeed = Math.abs(launcher.getVelocity()) >= launcherVel - 60
+                        && Math.abs(launcher.getVelocity()) <= launcherVel + 60;
+
+                if (launcherAtSpeed) {
+                    armServo.setPosition(0);
+                    // Use a timer instead of sleep
+                    if (launchTimer.milliseconds() > 150) {
+                        intake2.setPower(-1);
+                        intake1.setPower(1);
+                    } else {
+                        intake1.setPower(0);
+                        intake2.setPower(0);
+                    }
+                } else {
+                    launchTimer.reset(); // Reset timer if not at speed
+                    intake1.setPower(0);
+                    intake1.setPower(0);
+                }
+
+                telemetry.addData("motor velocity", Math.abs(launcher.getVelocity()));
+                telemetry.addData("range", range);
+                telemetry.addData("target velocity", launcherVel);
+            } else {
+                telemetry.addData("Status", "No AprilTag detected");
+            }
+
+            telemetry.addData("gamepad 2 right trigger value", gamepad2.right_trigger);
+            telemetry.update();
+
+        } else {
+            // Reset when trigger is released
+            armServo.setPosition(1);
+            intake2.setPower(0);
+            intake1.setPower(0);
+        }
+        if (gamepad2.right_bumper) {
+            launcher.setVelocity(1800);
+        }
+        // Emergency Brake
+        if (gamepad2.b) {
+            launcher.setVelocity(0);
+            intake1.setPower(0);
+            intake2.setPower(0);
+            frontLeftDrive.setPower(0);
+            frontRightDrive.setPower(0);
+            backLeftDrive.setPower(0);
+            backRightDrive.setPower(0);
+            armServo.setPosition(1);
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                // needed this to not have warning
+            }
+        }
+        else if (gamepad2.right_trigger < 0.85 && !gamepad2.right_bumper){
+            launcher.setVelocity(1300);
+            intake1.setPower(1);
         }
 
-        if (gamepad1.b) {
-            armServo.setPosition(ARM_DOWN_POSITION);
+    }
+
+    public AprilTagDetection detectAprilTag (int tag, List<AprilTagDetection> currentDetections ){
+
+        // Step through the list of detected tags and look for a matching tag
+        AprilTagDetection dummyTag = new AprilTagDetection(-1, -1 , 1.900F, null, null, null, null, null, null, 123);
+
+        for (AprilTagDetection detection : currentDetections) {
+            // Look to see if we have size info on this tag.
+            if (detection.metadata != null) {
+                //  Check to see if we want to track towards this tag.
+                if ((detection.id == tag)) {
+                    // Yes, we want to use this tag.
+                    telemetry.addData("\n\n\n\n", "TAG FOUND!!!!!!!");
+                    return detection;
+                } else {
+                    // This tag is in the library, but we do not want to track it right now.
+                    telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
+                }
+            } else {
+                // This tag is NOT in the library, so we don't have enough information to track to it.
+                telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
+            }
         }
+        return dummyTag;
     }
 
-    private void showTelemetry() {
+    public void drive(double forwardBackward, double strafeRightLeft, double rotate) {
+        // This calculates the power needed for each wheel based on the amount of forward,
+        // strafe right, and rotate
+        double frontLeftPower = forwardBackward + strafeRightLeft + rotate;
+        double frontRightPower = forwardBackward - strafeRightLeft - rotate;
+        double backRightPower = forwardBackward + strafeRightLeft - rotate;
+        double backLeftPower = forwardBackward - strafeRightLeft + rotate;
 
-        telemetry.addData(
-                "Launcher Power",
-                "%.2f",
-                launcher.getPower()
-        );
+        double maxPower = 1.0;
+        double maxSpeed = 1.0;  // make this slower for outreaches
 
-        telemetry.addData(
-                "Launcher Velocity",
-                "%.1f ticks/sec",
-                launcher.getVelocity()
-        );
+        // This is needed to make sure we don't pass > 1.0 to any wheel
+        // It allows us to keep all of the motors in proportion to what they should
+        // be and not get clipped
+        maxPower = Math.max(maxPower, Math.abs(frontLeftPower));
+        maxPower = Math.max(maxPower, Math.abs(frontRightPower));
+        maxPower = Math.max(maxPower, Math.abs(backRightPower));
+        maxPower = Math.max(maxPower, Math.abs(backLeftPower));
 
-        telemetry.addData(
-                "Intake Power",
-                "%.2f",
-                intake1.getPower()
-        );
-
-        telemetry.addData(
-                "Arm Position",
-                "%.2f",
-                armServo.getPosition()
-        );
-
-        telemetry.addLine("");
-        telemetry.addLine("Left stick: drive/strafe");
-        telemetry.addLine("Right stick: turn");
-        telemetry.addLine("Left trigger: slow drive");
-        telemetry.addLine("Right trigger: launcher");
-        telemetry.addLine("Right bumper: intake");
-        telemetry.addLine("Left bumper: reverse intake");
-        telemetry.addLine("A/B: move arm servo");
-
-        telemetry.update();
+        // We multiply by maxSpeed so that it can be set lower for outreaches
+        // When a young child is driving the robot, we may not want to allow full
+        // speed.
+        frontLeftDrive.setPower(maxSpeed * (frontLeftPower / maxPower));
+        frontRightDrive.setPower(maxSpeed * (frontRightPower / maxPower));
+        backLeftDrive.setPower(maxSpeed * (backLeftPower / maxPower));
+        backRightDrive.setPower(maxSpeed * (backRightPower / maxPower));
     }
+    private void driveFieldRelative(double forwardBackward, double strafeRightLeft, double rotate) {
 
-    @Override
-    public void stop() {
+        telemetry.addLine("Hold left bumper to drive in robot relative");
+        telemetry.addLine("The left joystick sets the robot direction");
+        telemetry.addLine("Moving the right joystick left and right turns the robot");
+        // First, convert direction being asked to drive to polar coordinates
+        double theta = Math.atan2(forwardBackward, strafeRightLeft);
+        double r = Math.hypot(strafeRightLeft, forwardBackward);
+        double pinpoint_Heading = pinpoint.getHeading(AngleUnit.RADIANS);
+        // Second, rotate angle by the angle the robot is pointing
+        theta = AngleUnit.normalizeRadians(theta -
+                pinpoint_Heading);
 
-        frontLeftDrive.setPower(0.0);
-        frontRightDrive.setPower(0.0);
-        backLeftDrive.setPower(0.0);
-        backRightDrive.setPower(0.0);
+        // Third, convert back to cartesian
+        double newForwardBackward = r * Math.sin(theta);
+        double newStrafeRightLeft = r * Math.cos(theta);
 
-        launcher.setPower(0.0);
-        intake1.setPower(0.0);
-        intake2.setPower(0.0);
+        // Finally, call the drive method with robot relative forward and right amounts
+        drive(newForwardBackward, newStrafeRightLeft, rotate);
+
+    }
+    public void initAprilTag() {
+        aprilTag = new AprilTagProcessor.Builder().build();
+        aprilTag.setDecimation(2);
+
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .addProcessor(aprilTag)
+                .build();
     }
 }
