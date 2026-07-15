@@ -6,14 +6,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 @TeleOp // Makes this show up on the Driver Station as a TeleOp
 public class TeleOpTest extends OpMode {
- `
+
     // Creates variables to store the four drivetrain motors
     private DcMotor frontLeft;
     private DcMotor frontRight;
     private DcMotor backLeft;
     private DcMotor backRight;
-    private DcMotor intake;
-    private DcMotor intake2;
 
 
     @Override
@@ -24,8 +22,6 @@ public class TeleOpTest extends OpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        intake2 = hardwareMap.get(DcMotor.class, "intake2");
 
 
         // Reverses the left side motors because of how the wheels are placed
@@ -86,9 +82,9 @@ public class TeleOpTest extends OpMode {
 
 
         // Sends the calculated power values to the motors
-        frontLeft.setPower(frontLeftPower);
-        frontRight.setPower(frontRightPower);
-        backLeft.setPower(backLeftPower);
-        backRight.setPower(backRightPower);
+        frontLeft.setPower(frontLeftPower/3);
+        frontRight.setPower(frontRightPower/3);
+        backLeft.setPower(-backLeftPower/3);
+        backRight.setPower(-backRightPower/3);
     }
 }
