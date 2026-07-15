@@ -22,10 +22,17 @@ public class Intake extends OpMode {
     public void loop() {
 
         if (gamepad1.right_bumper) {
-            intake1.setPower(1.0);
-        }
-        if (gamepad2.left_bumper) {
-            intake2.setPower(1.0);
+            intake1.setPower(1);
+            intake2.setPower(1);
+
+        } else if (gamepad2.left_bumper) {
+            intake1.setPower(-1);
+            intake2.setPower(-1);
+
+
+        } else {
+            intake1.setPower(0);
+            intake2.setPower(0);
         }
 
     }

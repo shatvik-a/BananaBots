@@ -109,14 +109,6 @@ public class Emerson_TeleOp extends OpMode {
         //intake2.setPower(-1.0);
 
         //Servo Bind
-
-        if (gamepad2.x) {
-            armServo.setPosition(0);
-        }
-        // if left bumper isn't pressed, intake 2 won't run
-        else if (gamepad2.right_trigger < 0.85){
-            armServo.setPosition(1);
-        }
         if (gamepad1.a){
             pinpoint.resetPosAndIMU();
         }
@@ -216,8 +208,7 @@ public class Emerson_TeleOp extends OpMode {
             telemetry.update();
 
         } else {
-            // Reset when trigger is released
-            armServo.setPosition(1);
+
             intake2.setPower(0);
             intake1.setPower(0);
         }
@@ -233,7 +224,6 @@ public class Emerson_TeleOp extends OpMode {
             frontRightDrive.setPower(0);
             backLeftDrive.setPower(0);
             backRightDrive.setPower(0);
-            armServo.setPosition(1);
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
