@@ -22,7 +22,7 @@ public class Turret_Aiming extends LinearOpMode{
     @Override
     public void runOpMode() throws InterruptedException{
         adaptorServo=hardwareMap.get(CRServo.class,"adaptorServo");
-        adaptorServo.setPower(0.0);
+        adaptorServo.setPower(0.0);a
         aprilTagProcessor=new AprilTagProcessor.Builder().build();
         aprilTagProcessor.setDecimation(2);
         visionPortal=new VisionPortal.Builder().setCamera(hardwareMap.get(WebcamName.class,"Webcam 1")).addProcessor(aprilTagProcessor).build();
