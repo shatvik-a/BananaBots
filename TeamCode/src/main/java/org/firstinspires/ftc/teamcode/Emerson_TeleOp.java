@@ -15,7 +15,7 @@ public class Emerson_TeleOp extends OpMode {
     private DcMotor intake1;
     private DcMotor intake2;
 
-    
+
 
 
     ) { // Runs once when you press INIT on the Driver Station
@@ -94,6 +94,9 @@ public class Emerson_TeleOp extends OpMode {
         frontRight.setPower(frontRightPower/3);
         backLeft.setPower(-backLeftPower/3);
         backRight.setPower(-backRightPower/3);
+
+        if (gamepad2)
+
 
     }
 }

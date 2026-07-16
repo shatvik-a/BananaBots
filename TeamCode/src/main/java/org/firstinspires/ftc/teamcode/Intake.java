@@ -25,7 +25,7 @@ public class Intake extends OpMode {
             intake1.setPower(1);
             intake2.setPower(1);
 
-        } else if (gamepad2.left_bumper) {
+        } else if (gamepad1.left_bumper) {
             intake1.setPower(-1);
             intake2.setPower(-1);
 
