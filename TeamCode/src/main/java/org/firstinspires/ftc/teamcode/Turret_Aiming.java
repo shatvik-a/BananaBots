@@ -15,7 +15,7 @@ public class Turret_Aiming extends LinearOpMode{
     private CRServo adaptorServo;
     private VisionPortal visionPortal;
     private AprilTagProcessor aprilTagProcessor;
-    private static final int TARGET_TAG_ID=1;
+    private static final int TARGET_TAG_ID=20;
     private static final double P_COEFF=0.02;
     private static final double MIN_POWER=0.08;
     private static final double ALLOWABLE_ERROR_DEG=1.0;
