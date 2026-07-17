@@ -26,6 +26,7 @@ public class TeleOpTest extends OpMode {
             backRight = hardwareMap.get(DcMotor.class, "backRight");
 
             intake1 = hardwareMap.get(DcMotor.class, "intake1");
+            intake2 = hardwareMap.get(DcMotor.class, "intake2");
 
             // Reverses the left side motors because of how the wheels are placed
             frontLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -91,13 +92,13 @@ public class TeleOpTest extends OpMode {
         backLeft.setPower(-backLeftPower/3);
         backRight.setPower(-backRightPower/3);
 
-        if (gamepad2.right_bumper){  // if right bumper (2nd controller) is clicked, both intakes will intake
-            intake1.setPower(1);
+        if (gamepad1.right_bumper){  // if the right bumper is clicked, both intakes will intake (set at gamepad 1 for testing)
+            intake1.setPower(-1);
             intake2.setPower(1);
         }
 
-        if (gamepad2.left_bumper) {   // if left bumper (2nd controller) is clicked, both intakes will reverse
-            intake1.setPower(-1);
+        if (gamepad1.left_bumper) {   // if the left bumper is clicked, both intakes will reverse (set at gamepad 1 for testing)
+            intake1.setPower(1);
             intake2.setPower(-1);
 
         } else {
