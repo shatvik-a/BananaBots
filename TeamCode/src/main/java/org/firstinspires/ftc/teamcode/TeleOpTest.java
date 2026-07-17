@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@TeleOp // Makes this show up on the Driver Station as a TeleOp
+@TeleOp
 public class TeleOpTest extends OpMode {
 
     // Creates variables to store the four drivetrain motors
@@ -12,31 +12,35 @@ public class TeleOpTest extends OpMode {
     private DcMotor frontRight;
     private DcMotor backLeft;
     private DcMotor backRight;
-
+    private DcMotor intake1;
+    private DcMotor intake2;
 
     @Override
-    public void init() { // Runs once when you press INIT on the Driver Station
+    public void init() {
+        { // Runs once when you press INIT on the Driver Station
 
-        // Connects each Java motor variable to the motor name in the Robot Configs
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft"); // the second part where it says "frontLeft" is the name in configs
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
+            // Connects each Java motor variable to the motor name in the Robot Configs
+            frontLeft = hardwareMap.get(DcMotor.class, "frontLeft"); // the second part where it says "frontLeft" is the name in configs
+            frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+            backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+            backRight = hardwareMap.get(DcMotor.class, "backRight");
+
+            intake1 = hardwareMap.get(DcMotor.class, "intake1");
+
+            // Reverses the left side motors because of how the wheels are placed
+            frontLeft.setDirection(DcMotor.Direction.REVERSE);
+            backLeft.setDirection(DcMotor.Direction.REVERSE);
 
 
-        // Reverses the left side motors because of how the wheels are placed
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
+            // Makes motors stop smoothly instead of freely spinning when joystick is released
+            // Last season we just stopped the power and let it stop by itself (it wasn't a problem, but I'm adding this because I saw it on discord)
+            frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
 
-
-        // Makes motors stop smoothly instead of freely spinning when joystick is released
-        // Last season we just stopped the power and let it stop by itself (it wasn't a problem, but I'm adding this because I saw it on discord)
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
-
 
     @Override
     public void loop() { // Runs repeatedly throughout the whole time the it is running.
@@ -86,5 +90,25 @@ public class TeleOpTest extends OpMode {
         frontRight.setPower(frontRightPower/3);
         backLeft.setPower(-backLeftPower/3);
         backRight.setPower(-backRightPower/3);
+
+        if (gamepad2.right_bumper){  // if right bumper (2nd controller) is clicked, both intakes will intake
+            intake1.setPower(1);
+            intake2.setPower(1);
+        }
+
+        if (gamepad2.left_bumper) {   // if left bumper (2nd controller) is clicked, both intakes will reverse
+            intake1.setPower(-1);
+            intake2.setPower(-1);
+
+        } else {
+            intake1.setPower(0);
+            intake2.setPower(0);
+
+
+        }
+
+
+
     }
+
 }
