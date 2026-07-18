@@ -87,10 +87,10 @@ public class TeleOpTest extends OpMode {
 
 
         // Sends the calculated power values to the motors
-        frontLeft.setPower(frontLeftPower/3);
-        frontRight.setPower(frontRightPower/3);
-        backLeft.setPower(-backLeftPower/3);
-        backRight.setPower(-backRightPower/3);
+        frontLeft.setPower(frontLeftPower/2);
+        frontRight.setPower(frontRightPower/2);
+        backLeft.setPower(-backLeftPower/2);
+        backRight.setPower(-backRightPower/2);
 
         if (gamepad1.right_bumper){  // if the right bumper is clicked, both intakes will intake (set at gamepad 1 for testing)
             intake1.setPower(-1);
@@ -102,8 +102,8 @@ public class TeleOpTest extends OpMode {
             intake2.setPower(-1);
 
         } else {
+            intake2.setPower(0.4);
             intake1.setPower(0);
-            intake2.setPower(0);
 
 
         }
