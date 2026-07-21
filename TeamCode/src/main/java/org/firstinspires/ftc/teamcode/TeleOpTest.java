@@ -14,6 +14,7 @@ public class TeleOpTest extends OpMode {
     private DcMotor backRight;
     private DcMotor intake1;
     private DcMotor intake2;
+    private DcMotor launcher;
 
     @Override
     public void init() {
@@ -27,6 +28,8 @@ public class TeleOpTest extends OpMode {
 
             intake1 = hardwareMap.get(DcMotor.class, "intake1");
             intake2 = hardwareMap.get(DcMotor.class, "intake2");
+
+            launcher = hardwareMap.get(DcMotor.class, "flywheel");
 
             // Reverses the left side motors because of how the wheels are placed
             frontLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -45,10 +48,12 @@ public class TeleOpTest extends OpMode {
 
     @Override
     public void loop() { // Runs repeatedly throughout the whole time the it is running.
+        if (gamepad1.b)
+             launcher.setPower(-0.65);
 
 
         // Gets controller joystick inputs
-        double y = -gamepad1.left_stick_y;//forward and backword
+        double y = -gamepad1.left_stick_y;//forward and backward
 
         double x = gamepad1.left_stick_x; //strafe
 
@@ -92,21 +97,20 @@ public class TeleOpTest extends OpMode {
         backLeft.setPower(-backLeftPower/2);
         backRight.setPower(-backRightPower/2);
 
-        if (gamepad1.right_bumper){  // if the right bumper is clicked, both intakes will intake (set at gamepad 1 for testing)
-            intake1.setPower(-1);
-            intake2.setPower(1);
-        }
-
-        if (gamepad1.left_bumper) {   // if the left bumper is clicked, both intakes will reverse (set at gamepad 1 for testing)
+        if (gamepad1.right_bumper) {
             intake1.setPower(1);
             intake2.setPower(-1);
 
+        } else if (gamepad1.left_bumper) {
+            intake1.setPower(-1);
+            intake2.setPower(1);
+
+
         } else {
-            intake2.setPower(0.4);
-            intake1.setPower(0);
-
-
+            intake1.setPower(0.25);
+            intake2.setPower(0);
         }
+
 
 
 
