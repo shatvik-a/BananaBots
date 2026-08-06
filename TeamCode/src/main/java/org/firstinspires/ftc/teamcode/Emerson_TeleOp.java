@@ -27,7 +27,7 @@ public class Emerson_TeleOp extends OpMode {
         backRight = hardwareMap.get(DcMotor.class, "backRight");
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class,"intake2");
-        
+
 
 
         // Reverses the left side motors because of how the wheels are placed
