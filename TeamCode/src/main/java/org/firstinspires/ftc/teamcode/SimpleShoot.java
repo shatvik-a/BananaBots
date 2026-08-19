@@ -35,7 +35,6 @@ public class SimpleShoot extends LinearOpMode {
 
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        boolean velocityLock = false;
 
         waitForStart();
 
@@ -50,19 +49,8 @@ public class SimpleShoot extends LinearOpMode {
                 intake1.setPower(0);
                 continue;
             }
-            double power = gamepad1.right_trigger;
-            telemetry.addData("power:",power);
-            telemetry.update();
-            if (gamepad1.a){
-                velocityLock = !velocityLock;
-                telemetry.addData("locked",velocityLock);
-                telemetry.update();
-            }
 
-            if (!velocityLock)
-                flywheel.setPower(power);
-
-
+            flywheel.setPower(0.8);
 
                 // Gets controller joystick inputs
             double y = -gamepad1.left_stick_y;//forward and backward
@@ -97,10 +85,10 @@ public class SimpleShoot extends LinearOpMode {
                 }
 
                 // Sends the calculated power values to the motors
-                frontLeft.setPower(frontLeftPower/2);
-                frontRight.setPower(frontRightPower/2);
-                backLeft.setPower(-backLeftPower/2);
-                backRight.setPower(-backRightPower/2);
+                frontLeft.setPower(frontLeftPower/3);
+                frontRight.setPower(frontRightPower/3);
+                backLeft.setPower(-backLeftPower/3);
+                backRight.setPower(-backRightPower/3);
 
                 if (gamepad1.right_bumper) {
                     intake1.setPower(1);
