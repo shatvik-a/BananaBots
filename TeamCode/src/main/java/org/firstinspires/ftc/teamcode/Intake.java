@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 
 
-@TeleOp(name = "M3_CompTeleop", group = "Competition")
 public class Intake extends OpMode {
     DcMotor intake1, intake2;
 
@@ -23,11 +22,9 @@ public class Intake extends OpMode {
 
         if (gamepad1.right_bumper) {
             intake1.setPower(1);
-            intake2.setPower(1);
 
         } else if (gamepad1.left_bumper) {
             intake1.setPower(-1);
-            intake2.setPower(-1);
 
 
         } else {
