@@ -11,6 +11,7 @@ public class SimpleShoot extends LinearOpMode {
     private DcMotor backRight;
     private DcMotor intake1;
     private DcMotor intake2;
+    private DcMotor flywheel, flywheel2;
     @Override
 
     public void runOpMode() {
@@ -22,6 +23,7 @@ public class SimpleShoot extends LinearOpMode {
 
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
+
         intake2.setDirection(DcMotor.Direction.REVERSE);
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -32,6 +34,7 @@ public class SimpleShoot extends LinearOpMode {
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         DcMotor flywheel = hardwareMap.get(DcMotor.class, "flywheel");
+        DcMotor flywheel2 = hardwareMap.get(DcMotor.class,"flywheel2");
 
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -46,6 +49,7 @@ public class SimpleShoot extends LinearOpMode {
                 backRight.setPower(0);
                 backLeft.setPower(0);
                 flywheel.setPower(0);
+                flywheel2.setPower(0);
                 intake2.setPower(0);
                 intake1.setPower(0);
                 continue;
@@ -115,6 +119,10 @@ public class SimpleShoot extends LinearOpMode {
                     intake2.setPower(0);
                 }
 
+                if (gamepad1.right_trigger > 0.1) {
+                    flywheel.setPower(-1);
+                    flywheel2.setPower(1);
+                }
         }
     }
 }
