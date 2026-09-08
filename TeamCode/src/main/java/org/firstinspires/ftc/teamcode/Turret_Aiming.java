@@ -16,13 +16,12 @@ public class Turret_Aiming extends LinearOpMode {
     private Limelight3A limelight;
 
     private static final int TARGET_TAG_ID = 20;
+    private static final double P_COEFF = 0.02;
+    private static final double I_COEFF = 0.0;
+    private static final double D_COEFF = 0.003;
 
-    private static final double P_COEFF = 0.0256;
-    private static final double I_COEFF = 0.0005;
-    private static final double D_COEFF = 0.002;
-
-    private static final double MIN_POWER = 0.05;
-    private static final double ALLOWABLE_ERROR_DEG = 1.0;
+    private static final double MIN_POWER = 0.00;
+    private static final double ALLOWABLE_ERROR_DEG = 0.75;
     private static final double MAX_INTEGRAL = 100.0;
 
     @Override
@@ -46,9 +45,20 @@ public class Turret_Aiming extends LinearOpMode {
         double integral = 0.0;
         long previousTime = System.nanoTime();
 
+        double lastTimestamp = -1;
+
         while (opModeIsActive()) {
 
             LLResult result = limelight.getLatestResult();
+
+            if (result == null) {
+                continue;
+            }
+
+            if (result.getTimestamp() == lastTimestamp) {
+                continue;              // same frame — leave the servo alone
+            }
+            lastTimestamp = result.getTimestamp();
 
             boolean targetFound = false;
 
@@ -101,7 +111,7 @@ public class Turret_Aiming extends LinearOpMode {
                                         + derivativeTerm);
 
                         if (Math.abs(error) <= ALLOWABLE_ERROR_DEG) {
-                            power = 0.0;
+                            power = -derivativeTerm;   // keep braking, stop chasing
                             integral = 0.0;
                         }
 
@@ -113,8 +123,8 @@ public class Turret_Aiming extends LinearOpMode {
                         }
 
                         power = Math.max(
-                                -0.5,
-                                Math.min(0.5, power)
+                                -0.3,
+                                Math.min(0.3, power)
                         );
 
                         adaptorServo.setPower(power);

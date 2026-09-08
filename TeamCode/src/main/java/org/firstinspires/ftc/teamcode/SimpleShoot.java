@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
 @TeleOp
 public class SimpleShoot extends LinearOpMode {
     private DcMotor frontLeft;
@@ -11,6 +13,7 @@ public class SimpleShoot extends LinearOpMode {
     private DcMotor backRight;
     private DcMotor intake1;
     private DcMotor intake2;
+
     @Override
 
     public void runOpMode() {
@@ -18,7 +21,6 @@ public class SimpleShoot extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-
 
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
@@ -36,16 +38,16 @@ public class SimpleShoot extends LinearOpMode {
 
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
 
-
         waitForStart();
 
         while (opModeIsActive()) {
-            if (gamepad2.b){
+            if (gamepad2.b) {
                 frontLeft.setPower(0);
                 frontRight.setPower(0);
                 backRight.setPower(0);
                 backLeft.setPower(0);
                 flywheel.setPower(0);
+                flywheel2.setPower(0);
                 intake2.setPower(0);
                 intake1.setPower(0);
                 continue;
@@ -54,56 +56,55 @@ public class SimpleShoot extends LinearOpMode {
             flywheel.setPower(0.8);
             flywheel2.setPower(0.8);
 
-                // Gets controller joystick inputs
-            double y = -gamepad1.left_stick_y;//forward and backward
+            // Gets controller joystick inputs
+            double y = -gamepad1.left_stick_y;// forward and backward
 
+            double rx = gamepad1.right_stick_x;// rotate
 
-                double rx = gamepad1.right_stick_x;//rotate
+            // Calculates the power needed for each wheel
+            double frontLeftPower = y + rx;
+            // checks inputs and decides action for each wheel
 
-                // Calculates the power needed for each wheel
-                double frontLeftPower = y  + rx;
-                //checks inputs and decides action for each wheel
+            double backLeftPower = y + rx;
 
-                double backLeftPower = y + rx;
+            double frontRightPower = y - rx;
 
-                double frontRightPower = y - rx;
+            double backRightPower = y - rx;
 
-                double backRightPower = y - rx;
+            // Checks the absolute value of all the power values and outputs the highest one
+            double max = Math.max(
+                    Math.abs(frontLeftPower),
+                    Math.max(Math.abs(backLeftPower), Math.max(Math.abs(frontRightPower), Math.abs(backRightPower))));
 
-                //Checks the absolute value of all the power values and outputs the highest one
-                double max = Math.max(
-                        Math.abs(frontLeftPower),
-                        Math.max(Math.abs(backLeftPower), Math.max(Math.abs(frontRightPower), Math.abs(backRightPower)))
-                );
+            // Makes sure no motor power is above 1.0 because the highest value for motors
+            // is 1
+            // Keeps the same movement direction but lowers speed if power is higher than 1
+            if (max > 1) {
 
-                // Makes sure no motor power is above 1.0 because the highest value for motors is 1
-                // Keeps the same movement direction but lowers speed if power is higher than 1
-                if (max > 1) {
+                frontLeftPower /= max; // Scales front left power down || Max is the highest abs found above
+                backLeftPower /= max; // Scales back left power down
+                frontRightPower /= max; // Scales front right power down
+                backRightPower /= max; // Scales back right power down
+            }
 
-                    frontLeftPower /= max; // Scales front left power down || Max is the highest abs found above
-                    backLeftPower /= max; // Scales back left power down
-                    frontRightPower /= max; // Scales front right power down
-                    backRightPower /= max; // Scales back right power down
-                }
+            // Sends the calculated power values to the motors
+            frontLeft.setPower(frontLeftPower / 3);
+            frontRight.setPower(frontRightPower / 3);
+            backLeft.setPower(-backLeftPower / 3);
+            backRight.setPower(-backRightPower / 3);
 
-                // Sends the calculated power values to the motors
-                frontLeft.setPower(frontLeftPower/3);
-                frontRight.setPower(frontRightPower/3);
-                backLeft.setPower(-backLeftPower/3);
-                backRight.setPower(-backRightPower/3);
+            if (gamepad1.right_bumper) {
+                intake1.setPower(1);
+                intake2.setPower(1);
 
-                if (gamepad1.right_bumper) {
-                    intake1.setPower(1);
-                    intake2.setPower(1);
+            } else if (gamepad1.left_bumper) {
+                intake1.setPower(-1);
+                intake2.setPower(-1);
 
-                } else if (gamepad1.left_bumper) {
-                    intake1.setPower(-1);
-                    intake2.setPower(-1);
-
-                } else {
-                    intake1.setPower(0.25);
-                    intake2.setPower(0);
-                }
+            } else {
+                intake1.setPower(0.25);
+                intake2.setPower(0);
+            }
 
         }
     }
