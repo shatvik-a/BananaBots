@@ -416,7 +416,7 @@ class ForwardVelocityTuner extends OpMode {
                 end = true;
                 stopRobot();
             } else {
-                follower.setTeleOpDrive(1,0,0,true);
+                follower.setTeleOpDrive(0.5,0,0,true);
                 //double currentVelocity = Math.abs(follower.getVelocity().getXComponent());
                 double currentVelocity = Math.abs(follower.poseTracker.getLocalizer().getVelocity().getX());
                 velocities.add(currentVelocity);
@@ -524,7 +524,7 @@ class LateralVelocityTuner extends OpMode {
                 end = true;
                 stopRobot();
             } else {
-                follower.setTeleOpDrive(0,1,0,true);
+                follower.setTeleOpDrive(0,0.5,0,true);
                 double currentVelocity = Math.abs(follower.getVelocity().dot(new Vector(1, Math.PI / 2)));
                 velocities.add(currentVelocity);
                 velocities.remove(0);
@@ -776,7 +776,7 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
 class PredictiveBrakingTuner extends OpMode {
     private static final double[] TEST_POWERS =
             {1, 1, 1, 0.9, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2};
-    private static final double BRAKING_POWER = -0.2;
+    private static final double BRAKING_POWER = -0.1;
 
     private static final int DRIVE_TIME_MS = 1000;
 

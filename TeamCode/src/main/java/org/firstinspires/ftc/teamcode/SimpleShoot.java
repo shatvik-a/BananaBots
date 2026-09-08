@@ -32,6 +32,7 @@ public class SimpleShoot extends LinearOpMode {
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         DcMotor flywheel = hardwareMap.get(DcMotor.class, "flywheel");
+        DcMotor flywheel2 = hardwareMap.get(DcMotor.class, "flywheel2");
 
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -51,6 +52,7 @@ public class SimpleShoot extends LinearOpMode {
             }
 
             flywheel.setPower(0.8);
+            flywheel2.setPower(0.8);
 
                 // Gets controller joystick inputs
             double y = -gamepad1.left_stick_y;//forward and backward
